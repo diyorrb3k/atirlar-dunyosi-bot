@@ -151,15 +151,20 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode="Markdown"
         )
 
-def run_bot():
+def run_web():
+    port = int(os.getenv("PORT", "10000"))
+    web.run(host="0.0.0.0", port=port)
+
+
+if __name__ == "__main__":
     if not TOKEN:
         raise RuntimeError("TOKEN environment variable is missing")
+
+    # Flask'ni thread'ga chiqaramiz
+    threading.Thread(target=run_web, daemon=True).start()
+
+    # Bot polling MAIN thread'da ishlasin ✅
     bot_app = ApplicationBuilder().token(TOKEN).build()
     bot_app.add_handler(CommandHandler("start", start))
     bot_app.add_handler(MessageHandler(filters.TEXT, message_handler))
     bot_app.run_polling()
-
-if __name__ == "__main__":
-    threading.Thread(target=run_bot, daemon=True).start()
-    port = int(os.getenv("PORT", "10000"))
-    web.run(host="0.0.0.0", port=port)
